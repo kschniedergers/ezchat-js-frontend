@@ -1,0 +1,6 @@
+/**
+ * React integration
+ * 
+ * @module
+ */
+

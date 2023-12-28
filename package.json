@@ -1,0 +1,19 @@
+{
+  "name": "ezchat-js-frontend",
+  "version": "0.0.1",
+  "description": " EZChat client for JS frontends ",
+  "main": "index.js",
+  "repository": "https://github.com/kschniedergers/ezchat-js-frontend.git",
+  "author": "Kai Schniedergers <kai.schniedergers@gmail.com>",
+  "license": "Unlicense",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.1.5",
+    "react": "^18.2.0",
+    "rollup": "^4.9.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  }
+}
