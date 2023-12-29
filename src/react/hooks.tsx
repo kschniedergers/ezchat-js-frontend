@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from "react";
-import { EzChatContext, EzChatContextProps } from "./provider";
+import { EzChatContext } from "./provider";
 import { EZ_CHAT_URL } from "../consts";
 import { createChatRoomConnection } from "../client";
-import { ChatMessage } from "../../../services/UserManagementApi";
+// import { ChatMessage } from "../../../services/UserManagementApi";
 import { ChatRoomMessagePayload, ChatRoomWebsocketMessage } from "../types";
 
 interface ChatRoomConnectionHook {

@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES6",
+    "moduleResolution": "node",
     "module": "esnext",
-    "esModuleInterop": true,
-    "baseUrl": ".",
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "jsx": "react-jsx",
+    "sourceMap": true
+    // "esModuleInterop": true,
+    // "baseUrl": ".",
+    // "outDir": "./dist",
+    // "rootDir": "./src",
 
   },
   "include": [

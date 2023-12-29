@@ -7,7 +7,8 @@
   "author": "Kai Schniedergers <kai.schniedergers@gmail.com>",
   "license": "Unlicense",
   "scripts": {
-    "build": "rollup -c"
+    "build": "rm -rf build/ && rollup -c",
+    "clean": "rm -rf build/"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.1.5",
