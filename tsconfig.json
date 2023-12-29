@@ -4,7 +4,8 @@
     "moduleResolution": "node",
     "module": "esnext",
     "jsx": "react-jsx",
-    "sourceMap": true
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
     // "esModuleInterop": true,
     // "baseUrl": ".",
     // "outDir": "./dist",

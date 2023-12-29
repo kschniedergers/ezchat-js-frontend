@@ -10,7 +10,8 @@
   "license": "Unlicense",
   "scripts": {
     "build": "rm -rf build/ && rollup -c",
-    "clean": "rm -rf build/"
+    "clean": "rm -rf build/",
+    "prepublishOnly": "yarn build"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.1.5",

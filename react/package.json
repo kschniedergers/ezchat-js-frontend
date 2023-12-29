@@ -1,5 +1,5 @@
 {
-    "name": "@ezchat/react",
+    "name": "@ezchat/ezchat-frontend-js/react",
     "private": true,
     "main": "../build/cjs/react/index.js",
     "module": "../build/esm/react/index.js",
