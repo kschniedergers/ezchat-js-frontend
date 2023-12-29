@@ -1,8 +1,10 @@
 {
-  "name": "ezchat-js-frontend",
-  "version": "0.0.1",
+  "name": "@ezchat/ezchat-frontend-js",
+  "version": "0.0.2",
   "description": " EZChat client for JS frontends ",
-  "main": "index.js",
+  "main": "build/cjs/index.js",
+  "module": "build/esm/index.js",
+  "types": "build/esm/types/index.d.ts",
   "repository": "https://github.com/kschniedergers/ezchat-js-frontend.git",
   "author": "Kai Schniedergers <kai.schniedergers@gmail.com>",
   "license": "Unlicense",
