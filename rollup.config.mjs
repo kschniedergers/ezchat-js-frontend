@@ -1,37 +1,30 @@
-import typescript from '@rollup/plugin-typescript';
+import typescript from 'rollup-plugin-typescript2';
+
+// external = ['react']
 
 export default [
     // CommonJS (for Node)
     {
         input: ['src/index.ts', 'src/react/index.ts'],
-        plugins: [typescript({
-            declaration: false,
-            rootDir: 'src',
-            exclude: ['**/*.test.ts']
-        })],
-        output: [{
+        output: {
             dir: 'build/cjs',
             format: 'cjs',
             sourcemap: true,
-            preserveModules: true,
-            preserveModulesRoot: 'src'
-        }]
+            preserveModules:true,
+            preserveModulesRoot: 'src',
+        },
+        plugins: [typescript({exclude: ['**/*.test.ts'], tsconfigOverride: {compilerOptions: {declaration: false}}})]
     },
     // ES module (for bundlers)
     {
         input: ['src/index.ts', 'src/react/index.ts'],
-        plugins: [typescript({
-            declaration: true,
-            declarationDir: 'build/esm',
-            rootDir: 'src',
-            exclude: ['**/*.test.ts']
-        })],
-        output: [{
+        output: {
             dir: 'build/esm',
             format: 'es',
             sourcemap: true,
             preserveModules: true,
             preserveModulesRoot: 'src'
-        }]
+        },
+        plugins: [typescript({exclude: ['**/*.test.ts']})]
     },
 ]

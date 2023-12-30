@@ -3,3 +3,4 @@ tests/
 rollup.config.js
 tsconfig.json
 yarn-error.log
+npmbuild

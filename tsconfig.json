@@ -4,19 +4,9 @@
     "moduleResolution": "node",
     "module": "esnext",
     "jsx": "react-jsx",
+    "esModuleInterop": true,
     "sourceMap": true,
-    "allowSyntheticDefaultImports": true,
-    // "esModuleInterop": true,
-    // "baseUrl": ".",
-    // "outDir": "./dist",
-    // "rootDir": "./src",
-
+    "declaration": true,
+    "rootDir": "./src",
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
 }
