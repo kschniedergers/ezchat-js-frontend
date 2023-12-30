@@ -9,30 +9,31 @@ export function connectToChatRoomWebsocket(roomId: number, authToken?: string) {
 
 // don't ask me why i need to do this myself ¯\_(ツ)_/¯
 // lol someday will code will fuck up because of this ascii shrug ¯\_(ツ)_/¯
-export enum WebsocketState {
-    CONNECTING = WebSocket.CONNECTING,
-    OPEN = WebSocket.OPEN,
-    CLOSING = WebSocket.CLOSING,
-    CLOSED = WebSocket.CLOSED,
-}
+// export enum WebsocketState {
+//     CONNECTING = WebSocket.CONNECTING,
+//     OPEN = WebSocket.OPEN,
+//     CLOSING = WebSocket.CLOSING,
+//     CLOSED = WebSocket.CLOSED,
+// }
 
-export function createChatRoomConnection(
-    roomId: number,
-    // authFunction?: () => Promise<string>,
-    // authToken?: string,
-    messageCallback?: (message: ChatRoomMessagePayload) => void
-) {
-    // TODO will need to paginate or cursor or something
-    // checks auth, etc, and gets past messages
-    async function initConnection(
+export class ChatRoomConnection {
+    private roomId: number;
+    private messageCallback?: (message: ChatRoomMessagePayload) => void;
+    private authFunction?: () => Promise<string>;
+
+    constructor(roomId: number, messageCallback?: (message: ChatRoomMessagePayload) => void) {
+        this.roomId = roomId;
+        this.messageCallback = messageCallback;
+    }
+    async initConnection(
         authFunction?: () => Promise<string>
     ): Promise<{ authToken?: string; messages: ChatRoomMessagePayload[] }> {
         const authToken = await authFunction?.();
-        const messagesRet = await fetch("http://" + EZ_CHAT_URL + "/join/" + roomId + "/init", {
+        const messagesRet = await fetch("http://" + EZ_CHAT_URL + "/join/" + this.roomId + "/init", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + authToken
+                Authorization: "Bearer " + authToken,
             },
         });
         console.log("but not here");
@@ -45,24 +46,28 @@ export function createChatRoomConnection(
         }
     }
 
-    function connectWebsocket(
+    connectWebsocket(
         authToken?: string,
-        socketCallbacks?: { onOpen?: () => void; onError?: (err: Event) => void; onClose?: () => void }
+        socketCallbacks?: {
+            onOpen?: () => void;
+            onError?: (err: Event) => void;
+            onClose?: () => void;
+        }
     ) {
-        const socket = connectToChatRoomWebsocket(roomId, authToken);
+        const socket = connectToChatRoomWebsocket(this.roomId, authToken);
 
         socket.onopen = () => {
-            console.log(`connected to room ${roomId}`);
+            console.log(`connected to room ${this.roomId}`);
             socketCallbacks?.onOpen?.();
         };
 
         socket.onmessage = (event) => {
             const message: ChatRoomMessagePayload = JSON.parse(event.data);
-            messageCallback?.(message);
+            this.messageCallback?.(message);
         };
 
         socket.onclose = () => {
-            console.log(`disconnected from room ${roomId}`);
+            console.log(`disconnected from room ${this.roomId}`);
             socketCallbacks?.onClose?.();
         };
 
@@ -73,12 +78,12 @@ export function createChatRoomConnection(
 
         function sendMessage(message: string): void {
             if (!socket) {
-                throw new Error(`Websocket for room ${roomId} is not connected`);
+                throw new Error(`Websocket for room ${this.roomId} is not connected`);
             }
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(message);
             } else {
-                throw new Error(`Websocket for room ${roomId} is not connected`);
+                throw new Error(`Websocket for room ${this.roomId} is not connected`);
             }
         }
 
@@ -93,9 +98,4 @@ export function createChatRoomConnection(
             disconnect,
         };
     }
-
-    return {
-        connectWebsocket,
-        initConnection,
-    };
 }
