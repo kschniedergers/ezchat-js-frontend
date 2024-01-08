@@ -2,59 +2,85 @@
 import { EZ_CHAT_URL } from "./consts";
 import { ChatRoomMessagePayload } from "./types";
 
+// amount of times to retry init connection
+const RETRY_COUNT = 2;
+
 export function connectToChatRoomWebsocket(roomId: number, authToken?: string) {
     const params = authToken ? "?authToken=" + authToken : "";
     return new WebSocket("ws://" + EZ_CHAT_URL + "/join/" + roomId + params);
 }
 
-// don't ask me why i need to do this myself ¯\_(ツ)_/¯
-// lol someday will code will fuck up because of this ascii shrug ¯\_(ツ)_/¯
-// export enum WebsocketState {
-//     CONNECTING = WebSocket.CONNECTING,
-//     OPEN = WebSocket.OPEN,
-//     CLOSING = WebSocket.CLOSING,
-//     CLOSED = WebSocket.CLOSED,
-// }
+export interface IChatRoomConnectionProps {
+    roomId: number;
+    authToken?: string;
+    messageCallback?: (message: ChatRoomMessagePayload) => void;
+    authFunction?: () => Promise<string>;
+}
+
+export interface IConnectWebsocketCallbacks {
+    onOpen?: () => void;
+    onError?: (err: Event) => void;
+    onClose?: () => void;
+}
 
 export class ChatRoomConnection {
     private roomId: number;
+    private authToken?: string;
     private messageCallback?: (message: ChatRoomMessagePayload) => void;
     private authFunction?: () => Promise<string>;
 
-    constructor(roomId: number, messageCallback?: (message: ChatRoomMessagePayload) => void) {
-        this.roomId = roomId;
-        this.messageCallback = messageCallback;
-    }
-    async initConnection(
-        authFunction?: () => Promise<string>
-    ): Promise<{ authToken?: string; messages: ChatRoomMessagePayload[] }> {
-        const authToken = await authFunction?.();
-        const messagesRet = await fetch("http://" + EZ_CHAT_URL + "/join/" + this.roomId + "/init", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + authToken,
-            },
-        });
-        console.log("but not here");
-        if (messagesRet.ok) {
-            return { authToken, messages: await messagesRet.json() };
-        } else if (messagesRet.status == 419) {
-            throw new Error("authToken is out of date");
-        } else {
-            throw new Error(await messagesRet.text());
+    constructor(props: IChatRoomConnectionProps) {
+        this.roomId = props.roomId;
+        this.authToken = props.authToken;
+        this.messageCallback = props.messageCallback;
+        this.authFunction = props.authFunction;
+
+        if (props.authToken && props.authFunction) {
+            console.warn("Both authToken and authFunction are provided, authToken will be used");
         }
     }
 
-    connectWebsocket(
-        authToken?: string,
-        socketCallbacks?: {
-            onOpen?: () => void;
-            onError?: (err: Event) => void;
-            onClose?: () => void;
+    async refreshToken() {
+        if (!this.authFunction) {
+            return;
         }
-    ) {
-        const socket = connectToChatRoomWebsocket(this.roomId, authToken);
+        this.authToken = await this.authFunction();
+    }
+
+    async initConnection(): Promise<{ messages: ChatRoomMessagePayload[] }> {
+        let lastError: Error | undefined;
+
+        for (let i = 0; i < RETRY_COUNT; i++) {
+            try {
+                this.refreshToken();
+                const messagesRet = await fetch("http://" + EZ_CHAT_URL + "/join/" + this.roomId + "/init", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: this.authToken ? "Bearer " + this.authToken : undefined,
+                    },
+                });
+
+                if (messagesRet.ok) {
+                    return { messages: await messagesRet.json() };
+                } else if (messagesRet.status == 419) {
+                    throw new Error("authToken is out of date");
+                } else {
+                    throw new Error(await messagesRet.text());
+                }
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        if (lastError) {
+            throw lastError;
+        }
+    }
+
+    // I should reeeeealy maybe refresh the token here
+    connectWebsocket(socketCallbacks?: IConnectWebsocketCallbacks) {
+        const socket = connectToChatRoomWebsocket(this.roomId, this.authToken);
 
         socket.onopen = () => {
             console.log(`connected to room ${this.roomId}`);

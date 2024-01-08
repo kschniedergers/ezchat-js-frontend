@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState } from "react";
 import { EzChatContext } from "./provider";
 import { EZ_CHAT_URL } from "../consts";
-import { createChatRoomConnection } from "../client";
+import { ChatRoomConnection } from "../client";
 // import { ChatMessage } from "../../../services/UserManagementApi";
-import { ChatRoomMessagePayload, ChatRoomWebsocketMessage } from "../types";
+import { ChatRoomMessagePayload } from "../types";
 
 interface ChatRoomConnectionHook {
     sendMessage: (message: string) => void;
@@ -13,7 +13,10 @@ interface ChatRoomConnectionHook {
     connected: boolean;
 }
 
-export const useEzChatRoomConnection = (roomId: number, authFunction?: () => Promise<string>): ChatRoomConnectionHook => {
+export const useEzChatRoomConnection = (
+    roomId: number,
+    authFunction?: () => Promise<string>
+): ChatRoomConnectionHook => {
     const context = useContext(EzChatContext);
 
     const [messages, setMessages] = useState<ChatRoomMessagePayload[]>([]);
@@ -28,19 +31,24 @@ export const useEzChatRoomConnection = (roomId: number, authFunction?: () => Pro
 
     const authFunctionToUse = authFunction || context?.authFunction;
 
-    const { initConnection, connectWebsocket } = createChatRoomConnection(roomId, (message) => {
-        setMessages((prev) => [...prev, message]);
-    });
+    const chatRoomConnection = new ChatRoomConnection({ roomId, authFunction });
+
+    // const initReturn = await chatRoomConnection.initConnection()
+
+    // const { initConnection, connectWebsocket } = createChatRoomConnection(roomId, (message) => {
+    //     setMessages((prev) => [...prev, message]);
+    // });
 
     useEffect(() => {
         let disconnect: () => void;
         let cancelConnection = false;
 
-        initConnection(authFunctionToUse)
-            .then(({ authToken, messages }) => {
+        chatRoomConnection
+            .initConnection()
+            .then(({ messages }) => {
                 setMessages(messages);
                 if (!cancelConnection) {
-                    const ret = connectWebsocket(authToken, {
+                    const ret = chatRoomConnection.connectWebsocket({
                         onClose: () => {
                             setConnected(false);
                             setLoading(false);
