@@ -21,18 +21,17 @@ export interface IConnectWebsocketCallbacks {
     onOpen?: () => void;
     onError?: (err: Event) => void;
     onClose?: () => void;
+    onMessage?: (message: ChatRoomMessagePayload) => void;
 }
 
 export class ChatRoomConnection {
     private roomId: number;
     private authToken?: string;
-    private messageCallback?: (message: ChatRoomMessagePayload) => void;
     private authFunction?: () => Promise<string>;
 
     constructor(props: IChatRoomConnectionProps) {
         this.roomId = props.roomId;
         this.authToken = props.authToken;
-        this.messageCallback = props.messageCallback;
         this.authFunction = props.authFunction;
 
         if (props.authToken && props.authFunction) {
@@ -53,12 +52,18 @@ export class ChatRoomConnection {
         for (let i = 0; i < RETRY_COUNT; i++) {
             try {
                 this.refreshToken();
+
+                const headers = {
+                    "Content-Type": "application/json",
+                };
+
+                if (this.authToken) {
+                    headers["Authorization"] = "Bearer " + this.authToken;
+                }
+
                 const messagesRet = await fetch("http://" + EZ_CHAT_URL + "/join/" + this.roomId + "/init", {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: this.authToken ? "Bearer " + this.authToken : undefined,
-                    },
+                    headers,
                 });
 
                 if (messagesRet.ok) {
@@ -88,8 +93,9 @@ export class ChatRoomConnection {
         };
 
         socket.onmessage = (event) => {
+            // TODO maybe add some validation or something
             const message: ChatRoomMessagePayload = JSON.parse(event.data);
-            this.messageCallback?.(message);
+            socketCallbacks?.onMessage(message);
         };
 
         socket.onclose = () => {

@@ -19,7 +19,7 @@ export interface ChatRoomMessagePayload {
         id: number;
         chatterType: ChatterType;
         messageText: string;
-        timestamp: Date;
+        sentAt: Date;
         moderationStatus: MessageModerationStatus;
         chatter: {
             id?: number;

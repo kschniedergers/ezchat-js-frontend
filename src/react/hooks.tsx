@@ -63,6 +63,9 @@ export const useEzChatRoomConnection = (
                             setLoading(false);
                             setError(undefined);
                         },
+                        onMessage: (message) => {
+                            setMessages((prev) => [...prev, message]);
+                        },
                     });
 
                     disconnect = ret.disconnect;
