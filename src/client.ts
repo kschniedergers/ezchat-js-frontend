@@ -1,6 +1,6 @@
 // import { createBasicHeaders } from "../../utils";
 import { EZ_CHAT_URL } from "./consts";
-import { ChatRoomMessagePayload } from "./types";
+import { ChatRoomMessagePayload, ChatRoomWebsocketMessage } from "./types";
 
 // amount of times to retry init connection
 const RETRY_COUNT = 2;
@@ -21,7 +21,7 @@ export interface IConnectWebsocketCallbacks {
     onOpen?: () => void;
     onError?: (err: Event) => void;
     onClose?: () => void;
-    onMessage?: (message: ChatRoomMessagePayload) => void;
+    onMessage?: (message: ChatRoomWebsocketMessage) => void;
 }
 
 export class ChatRoomConnection {

@@ -3,23 +3,40 @@ import { EzChatContext } from "./provider";
 import { EZ_CHAT_URL } from "../consts";
 import { ChatRoomConnection } from "../client";
 // import { ChatMessage } from "../../../services/UserManagementApi";
-import { ChatRoomMessagePayload } from "../types";
+import {
+    ChatRoomDeleteMessagePayload,
+    ChatRoomJoinLeavePayload,
+    ChatRoomMessagePayload,
+    ChatRoomWebsocketMessage,
+} from "../types";
+import { IncludeOnly } from "../utils";
 
-interface ChatRoomConnectionHook {
-    sendMessage: (message: string) => void;
-    messages: ChatRoomMessagePayload[];
-    loading: boolean;
-    error: Error | undefined;
-    connected: boolean;
+// interface ChatRoomConnectionHook {
+//     sendMessage: (message: string) => void;
+//     messages: ChatRoomWebsocketMessage[];
+//     loading: boolean;
+//     error: Error | undefined;
+//     connected: boolean;
+// }
+
+// take only a couple values from wsmessage type
+
+type MessageTypes = IncludeOnly<ChatRoomWebsocketMessage["payloadType"], "join" | "leave" | "message">;
+
+interface IEzChatRoomConnection {
+    roomId: number;
+    authFunction?: () => Promise<string>;
+    includeLeaveJoinMessages?: boolean;
 }
 
-export const useEzChatRoomConnection = (
-    roomId: number,
-    authFunction?: () => Promise<string>
-): ChatRoomConnectionHook => {
+type MessagePayload<T extends IEzChatRoomConnection> = T["includeLeaveJoinMessages"] extends true
+    ? ChatRoomMessagePayload | ChatRoomJoinLeavePayload
+    : ChatRoomMessagePayload;
+
+export const useEzChatRoomConnection = <T extends IEzChatRoomConnection>(config: T) => {
     const context = useContext(EzChatContext);
 
-    const [messages, setMessages] = useState<ChatRoomMessagePayload[]>([]);
+    const [messages, setMessages] = useState<MessagePayload<T>[]>([]);
 
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | undefined>(undefined);
@@ -29,9 +46,9 @@ export const useEzChatRoomConnection = (
         setError(new Error("sendMessage called before connecting to websocket"));
     });
 
-    const authFunctionToUse = authFunction || context?.authFunction;
+    const authFunctionToUse = config?.authFunction || context?.authFunction;
 
-    const chatRoomConnection = new ChatRoomConnection({ roomId, authFunction });
+    const chatRoomConnection = new ChatRoomConnection({ roomId: config.roomId, authFunction: authFunctionToUse });
 
     // const initReturn = await chatRoomConnection.initConnection()
 
@@ -55,7 +72,7 @@ export const useEzChatRoomConnection = (
                         },
                         onError: (err) => {
                             console.error(err);
-                            setError(new Error("A websocket error occurred"));
+                            setError(new Error("A websocket error occurred: " + err));
                             setLoading(false);
                         },
                         onOpen: () => {
@@ -64,7 +81,29 @@ export const useEzChatRoomConnection = (
                             setError(undefined);
                         },
                         onMessage: (message) => {
-                            setMessages((prev) => [...prev, message]);
+                            switch (message.payloadType) {
+                                case "join" || "leave":
+                                    if (config.includeLeaveJoinMessages) {
+                                        setMessages((prev) => [...prev, message] as MessagePayload<T>[]);
+                                    }
+                                    break;
+                                case "message":
+                                    setMessages((prev) => [...prev, message]);
+                                    break;
+
+                                case "delete_message":
+                                    setMessages((prev) =>
+                                        prev.filter(
+                                            (m) =>
+                                                m.payloadType !== "message" ||
+                                                m.payload.id !== message.payload.messageId
+                                        )
+                                    );
+                                    break;
+
+                                case "error":
+                                    setError(new Error(message.payload.message));
+                            }
                         },
                     });
 

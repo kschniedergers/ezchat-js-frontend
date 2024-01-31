@@ -28,11 +28,17 @@ export interface ChatRoomMessagePayload {
     };
 }
 
+// i know its kinda gross but I want as many similarities to the message payload as possible
+// in the case that people don't know about payload types and don't to a switch and can still
+// get a basic thing going
 export interface ChatRoomJoinLeavePayload {
     payloadType: "join" | "leave";
     payload: {
-        chatterId?: number;
-        chatterName: string;
+        messageText: string;
+        chatter: {
+            id?: number;
+            name: string;
+        };
     };
 }
 
