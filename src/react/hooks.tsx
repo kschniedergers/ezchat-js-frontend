@@ -11,32 +11,28 @@ import {
 } from "../types";
 import { IncludeOnly } from "../utils";
 
-// interface ChatRoomConnectionHook {
-//     sendMessage: (message: string) => void;
-//     messages: ChatRoomWebsocketMessage[];
-//     loading: boolean;
-//     error: Error | undefined;
-//     connected: boolean;
-// }
+// type MessageTypes = IncludeOnly<ChatRoomWebsocketMessage["payloadType"], "join" | "leave" | "message">;
 
-// take only a couple values from wsmessage type
-
-type MessageTypes = IncludeOnly<ChatRoomWebsocketMessage["payloadType"], "join" | "leave" | "message">;
-
-interface IEzChatRoomConnection {
-    roomId: number;
+interface IEzChatRoomConnectionConfig {
     authFunction?: () => Promise<string>;
     includeLeaveJoinMessages?: boolean;
 }
 
-type MessagePayload<T extends IEzChatRoomConnection> = T["includeLeaveJoinMessages"] extends true
-    ? ChatRoomMessagePayload | ChatRoomJoinLeavePayload
-    : ChatRoomMessagePayload;
+// lot of commented code that will be used for adding join/leave messages that changes the type of the messages array to include them
+// however, this makes basic setup a little more difficult and I havn't fully figured it out the way I want so it is a todo
 
-export const useEzChatRoomConnection = <T extends IEzChatRoomConnection>(config: T) => {
+// type MessagePayload<T extends IEzChatRoomConnection> = T["includeLeaveJoinMessages"] extends true
+//     ? ChatRoomMessagePayload | ChatRoomJoinLeavePayload
+//     : ChatRoomMessagePayload;
+
+// export const useEzChatRoomConnection = <T extends IEzChatRoomConnection>(config: T) => {
+// type inferredMessagesType = MessagePayload<typeof config.includeLeaveJoinMessages>[];
+// const [messages, setMessages] = useState<MessagePayload<T>[]>([]);
+
+export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConnectionConfig) => {
     const context = useContext(EzChatContext);
 
-    const [messages, setMessages] = useState<MessagePayload<T>[]>([]);
+    const [messages, setMessages] = useState<ChatRoomMessagePayload[]>([]);
 
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | undefined>(undefined);
@@ -48,13 +44,7 @@ export const useEzChatRoomConnection = <T extends IEzChatRoomConnection>(config:
 
     const authFunctionToUse = config?.authFunction || context?.authFunction;
 
-    const chatRoomConnection = new ChatRoomConnection({ roomId: config.roomId, authFunction: authFunctionToUse });
-
-    // const initReturn = await chatRoomConnection.initConnection()
-
-    // const { initConnection, connectWebsocket } = createChatRoomConnection(roomId, (message) => {
-    //     setMessages((prev) => [...prev, message]);
-    // });
+    const chatRoomConnection = new ChatRoomConnection({ roomId, authFunction: authFunctionToUse });
 
     useEffect(() => {
         let disconnect: () => void;
@@ -83,9 +73,7 @@ export const useEzChatRoomConnection = <T extends IEzChatRoomConnection>(config:
                         onMessage: (message) => {
                             switch (message.payloadType) {
                                 case "join" || "leave":
-                                    if (config.includeLeaveJoinMessages) {
-                                        setMessages((prev) => [...prev, message] as MessagePayload<T>[]);
-                                    }
+                                    // will be implemented later
                                     break;
                                 case "message":
                                     setMessages((prev) => [...prev, message]);
