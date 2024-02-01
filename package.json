@@ -1,6 +1,6 @@
 {
   "name": "@ezchat/ezchat-js-frontend",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": " EZChat client for JS frontends ",
   "main": "build/cjs/index.js",
   "module": "build/esm/index.js",
