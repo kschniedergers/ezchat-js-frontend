@@ -32,7 +32,7 @@ interface IEzChatRoomConnectionConfig {
 export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConnectionConfig) => {
     const context = useContext(EzChatContext);
 
-    const [messages, setMessages] = useState<ChatRoomMessagePayload[]>([]);
+    const [messages, setMessages] = useState<ChatRoomMessagePayload["payload"][]>([]);
 
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | undefined>(undefined);
@@ -53,7 +53,7 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
         chatRoomConnection
             .initConnection()
             .then(({ messages }) => {
-                setMessages(messages);
+                setMessages(messages.map((m) => m.payload));
                 if (!cancelConnection) {
                     const ret = chatRoomConnection.connectWebsocket({
                         onClose: () => {
@@ -76,15 +76,15 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
                                     // will be implemented later
                                     break;
                                 case "message":
-                                    setMessages((prev) => [...prev, message]);
+                                    setMessages((prev) => [...prev, message.payload]);
                                     break;
 
                                 case "delete_message":
                                     setMessages((prev) =>
                                         prev.filter(
                                             (m) =>
-                                                m.payloadType !== "message" ||
-                                                m.payload.id !== message.payload.messageId
+                                                // m.payloadType !== "message" ||
+                                                m.id !== message.payload.messageId
                                         )
                                     );
                                     break;
