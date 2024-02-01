@@ -53,7 +53,7 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
         chatRoomConnection
             .initConnection()
             .then(({ messages }) => {
-                setMessages(messages.map((m) => m.payload));
+                setMessages(messages);
                 if (!cancelConnection) {
                     const ret = chatRoomConnection.connectWebsocket({
                         onClose: () => {

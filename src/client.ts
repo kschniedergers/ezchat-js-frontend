@@ -46,7 +46,7 @@ export class ChatRoomConnection {
         this.authToken = await this.authFunction();
     }
 
-    async initConnection(): Promise<{ messages: ChatRoomMessagePayload[] }> {
+    async initConnection(): Promise<{ messages: ChatRoomMessagePayload["payload"][] }> {
         let lastError: Error | undefined;
 
         for (let i = 0; i < RETRY_COUNT; i++) {
