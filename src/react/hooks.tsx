@@ -16,6 +16,7 @@ import { IncludeOnly } from "../utils";
 interface IEzChatRoomConnectionConfig {
     authFunction?: () => Promise<string>;
     includeLeaveJoinMessages?: boolean;
+    reverseMessages?: boolean;
 }
 
 // lot of commented code that will be used for adding join/leave messages that changes the type of the messages array to include them
@@ -53,7 +54,7 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
         chatRoomConnection
             .initConnection()
             .then(({ messages }) => {
-                setMessages(messages);
+                setMessages(config?.reverseMessages ? messages.reverse() : messages);
                 if (!cancelConnection) {
                     const ret = chatRoomConnection.connectWebsocket({
                         onClose: () => {
@@ -76,7 +77,11 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
                                     // will be implemented later
                                     break;
                                 case "message":
-                                    setMessages((prev) => [...prev, message.payload]);
+                                    if (config?.reverseMessages) {
+                                        setMessages((prev) => [...prev, message.payload]);
+                                    } else {
+                                        setMessages((prev) => [message.payload, ...prev]);
+                                    }
                                     break;
 
                                 case "delete_message":
