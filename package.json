@@ -20,5 +20,8 @@
     "rollup": "^4.9.2",
     "rollup-plugin-typescript2": "^0.36.0",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
   }
 }

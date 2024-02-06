@@ -10,6 +10,7 @@ import {
     ChatRoomWebsocketMessage,
 } from "../types";
 import { IncludeOnly } from "../utils";
+import { set, z } from "zod";
 
 // type MessageTypes = IncludeOnly<ChatRoomWebsocketMessage["payloadType"], "join" | "leave" | "message">;
 
@@ -17,7 +18,16 @@ interface IEzChatRoomConnectionConfig {
     authFunction?: () => Promise<string>;
     includeLeaveJoinMessages?: boolean;
     reverseMessages?: boolean;
+    maxMessages?: number;
+    messagesPerPage?: number;
 }
+
+const ezChatRoomConnectionConfigDefaults: IEzChatRoomConnectionConfig = {
+    includeLeaveJoinMessages: false,
+    reverseMessages: false,
+    maxMessages: 200,
+    messagesPerPage: 25,
+};
 
 // lot of commented code that will be used for adding join/leave messages that changes the type of the messages array to include them
 // however, this makes basic setup a little more difficult and I havn't fully figured it out the way I want so it is a todo
@@ -31,6 +41,8 @@ interface IEzChatRoomConnectionConfig {
 // const [messages, setMessages] = useState<MessagePayload<T>[]>([]);
 
 export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConnectionConfig) => {
+    config = { ...ezChatRoomConnectionConfigDefaults, ...config };
+
     const context = useContext(EzChatContext);
 
     const [messages, setMessages] = useState<ChatRoomMessagePayload["payload"][]>([]);
@@ -38,6 +50,9 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | undefined>(undefined);
     const [connected, setConnected] = useState<boolean>(false);
+
+    const [fetchingMore, setFetchingMore] = useState<boolean>(false);
+    const [fetchingMoreError, setFetchingMoreError] = useState<Error | undefined>(undefined);
 
     const [sendMessage, setSendMessage] = useState<(message: string) => void>(() => () => {
         setError(new Error("sendMessage called before connecting to websocket"));
@@ -47,14 +62,35 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
 
     const chatRoomConnection = new ChatRoomConnection({ roomId, authFunction: authFunctionToUse });
 
+    const [cursor, setCursor] = useState<string | undefined>(undefined);
+
+    const fetchMoreMessages = (amount: number = 25) => {
+        setFetchingMore(true);
+        chatRoomConnection
+            .fetchMessages(cursor, amount)
+            .then(({ messages, nextCursor }) => {
+                setFetchingMore(false);
+                setMessages((prev) =>
+                    config?.reverseMessages ? [...messages.reverse(), ...prev] : [...prev, ...messages]
+                );
+                setCursor(nextCursor);
+            })
+            .catch((err) => {
+                setFetchingMore(false);
+                setFetchingMoreError(err);
+                console.error(err);
+            });
+    };
+
     useEffect(() => {
         let disconnect: () => void;
         let cancelConnection = false;
 
         chatRoomConnection
-            .initConnection()
-            .then(({ messages }) => {
+            .fetchMessages()
+            .then(({ messages, nextCursor }) => {
                 setMessages(config?.reverseMessages ? messages.reverse() : messages);
+                setCursor(nextCursor);
                 if (!cancelConnection) {
                     const ret = chatRoomConnection.connectWebsocket({
                         onClose: () => {
@@ -125,6 +161,9 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
 
     return {
         sendMessage,
+        fetchMoreMessages,
+        fetchingMore,
+        fetchingMoreError,
         messages,
         loading,
         error,

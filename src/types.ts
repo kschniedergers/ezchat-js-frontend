@@ -71,3 +71,9 @@ export type ChatRoomWebsocketMessage =
     | ChatRoomDeleteMessagePayload
     | ChatRoomBanPayload
     | ChatRoomErrorPayload;
+
+export type CursorPaginatedMessages = {
+    messages: ChatRoomMessagePayload["payload"][];
+    nextCursor?: string;
+    total?: number;
+};
