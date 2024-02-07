@@ -112,7 +112,7 @@ export class ChatRoomConnection {
                     const zCursorPaginatedMessages = z.custom<CursorPaginatedMessages>();
                     return zCursorPaginatedMessages.parse(await messagesRet.json());
                 } else if (messagesRet.status == 419) {
-                    this.authToken = await this.authFunction();
+                    this.refreshToken();
                     throw new Error("authToken is out of date");
                 } else {
                     throw new Error(await messagesRet.text());

@@ -51,8 +51,8 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
     const [error, setError] = useState<Error | undefined>(undefined);
     const [connected, setConnected] = useState<boolean>(false);
 
-    const [fetchingMore, setFetchingMore] = useState<boolean>(false);
-    const [fetchingMoreError, setFetchingMoreError] = useState<Error | undefined>(undefined);
+    const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState<boolean>(false);
+    const [loadMoreMessagesError, setLoadMoreMessagesError] = useState<Error | undefined>(undefined);
 
     const [sendMessage, setSendMessage] = useState<(message: string) => void>(() => () => {
         setError(new Error("sendMessage called before connecting to websocket"));
@@ -64,20 +64,29 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
 
     const [cursor, setCursor] = useState<string | undefined>(undefined);
 
+    const hasMoreMessages = cursor !== undefined;
+
     const fetchMoreMessages = (amount: number = 25) => {
-        setFetchingMore(true);
+        if (!cursor) {
+            setLoadMoreMessagesError(new Error("No more messages to fetch"));
+            return;
+        }
+        if (isLoadingMoreMessages) {
+            return;
+        }
+        setIsLoadingMoreMessages(true);
         chatRoomConnection
             .fetchMessages(cursor, amount)
             .then(({ messages, nextCursor }) => {
-                setFetchingMore(false);
+                setIsLoadingMoreMessages(false);
                 setMessages((prev) =>
                     config?.reverseMessages ? [...messages.reverse(), ...prev] : [...prev, ...messages]
                 );
                 setCursor(nextCursor);
             })
             .catch((err) => {
-                setFetchingMore(false);
-                setFetchingMoreError(err);
+                setIsLoadingMoreMessages(false);
+                setLoadMoreMessagesError(err);
                 console.error(err);
             });
     };
@@ -162,8 +171,9 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
     return {
         sendMessage,
         fetchMoreMessages,
-        fetchingMore,
-        fetchingMoreError,
+        hasMoreMessages,
+        isLoadingMoreMessages,
+        loadMoreMessagesError,
         messages,
         loading,
         error,
