@@ -1,6 +1,6 @@
 {
   "name": "@ezchat/ezchat-js-frontend",
-  "version": "0.1.6",
+  "version": "0.1.8",
   "description": " EZChat client for JS frontends ",
   "main": "build/cjs/index.js",
   "module": "build/esm/index.js",
@@ -12,6 +12,7 @@
     "build": "rm -rf build/ && rollup -c",
     "clean": "rm -rf build/ npmbuild/",
     "prepublishOnly": "yarn clean && yarn build",
+    "postpublish": "yarn clean",
     "packnpull": "yarn build && TARBALL_NAME=$(npm pack) && rm -rf npmbuild && mkdir -p npmbuild && tar -xzf $TARBALL_NAME -C npmbuild && rm $TARBALL_NAME"
   },
   "devDependencies": {
