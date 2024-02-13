@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { EzChatContext } from "./provider";
 import { EZ_CHAT_URL } from "../consts";
 import { ChatRoomConnection } from "../client";
@@ -60,7 +60,10 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
 
     const authFunctionToUse = config?.authFunction || context?.authFunction;
 
-    const chatRoomConnection = new ChatRoomConnection({ roomId, authFunction: authFunctionToUse });
+    const chatRoomConnection = useMemo(
+        () => new ChatRoomConnection({ roomId, authFunction: authFunctionToUse }),
+        [roomId, authFunctionToUse]
+    );
 
     const [cursor, setCursor] = useState<string | undefined>(undefined);
 
@@ -171,6 +174,7 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
     return {
         sendMessage,
         fetchMoreMessages,
+        refreshToken: chatRoomConnection.refreshToken,
         hasMoreMessages,
         isLoadingMoreMessages,
         loadMoreMessagesError,
