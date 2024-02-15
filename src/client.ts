@@ -90,8 +90,8 @@ export class ChatRoomConnection {
         }
     }
 
-    // I should reeeeealy maybe refresh the token here
     connectWebsocket(socketCallbacks?: IConnectWebsocketCallbacks) {
+        this.refreshToken();
         const socket = connectToChatRoomWebsocket(this.roomId, this.authToken);
 
         socket.onopen = () => {
