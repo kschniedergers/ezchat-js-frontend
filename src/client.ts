@@ -91,38 +91,43 @@ export class ChatRoomConnection {
     }
 
     connectWebsocket(socketCallbacks?: IConnectWebsocketCallbacks) {
-        this.refreshToken();
-        const socket = connectToChatRoomWebsocket(this.roomId, this.authToken);
+        let socket: WebSocket | undefined;
+        this.refreshToken().then(() => {
+            socket = connectToChatRoomWebsocket(this.roomId, this.authToken);
+            socket.onopen = () => {
+                console.log(`connected to room ${this.roomId}`);
+                socketCallbacks?.onOpen?.();
+            };
 
-        socket.onopen = () => {
-            console.log(`connected to room ${this.roomId}`);
-            socketCallbacks?.onOpen?.();
-        };
+            socket.onmessage = (event) => {
+                // TODO maybe add some validation or something
+                const message: ChatRoomMessagePayload = JSON.parse(event.data);
+                socketCallbacks?.onMessage?.(message);
+            };
 
-        socket.onmessage = (event) => {
-            // TODO maybe add some validation or something
-            const message: ChatRoomMessagePayload = JSON.parse(event.data);
-            socketCallbacks?.onMessage(message);
-        };
+            socket.onclose = () => {
+                console.log(`disconnected from room ${this.roomId}`);
+                socketCallbacks?.onClose?.();
+            };
 
-        socket.onclose = () => {
-            console.log(`disconnected from room ${this.roomId}`);
-            socketCallbacks?.onClose?.();
-        };
-
-        socket.onerror = (error) => {
-            console.error("WebSocket Error: ", error);
-            socketCallbacks?.onError?.(error);
-        };
+            socket.onerror = (error) => {
+                console.error("WebSocket Error: ", error);
+                socketCallbacks?.onError?.(error);
+            };
+        });
 
         function sendMessage(message: string): void {
-            if (!socket) {
-                throw new Error(`Websocket for room ${this.roomId} is not connected`);
+            if (socket.readyState === WebSocket.CONNECTING) {
+                throw new Error(
+                    `You are calling sendMessage, but the websocket for room ${this.roomId} is not connected yet`
+                );
             }
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(message);
             } else {
-                throw new Error(`Websocket for room ${this.roomId} is not connected`);
+                throw new Error(
+                    `You are calling sendMessage, but the websocket for room ${this.roomId} is not connected`
+                );
             }
         }
 
