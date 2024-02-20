@@ -41,6 +41,9 @@ const ezChatRoomConnectionConfigDefaults: IEzChatRoomConnectionConfig = {
 // const [messages, setMessages] = useState<MessagePayload<T>[]>([]);
 
 export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConnectionConfig) => {
+    // Pretty sure it is generally frowned upon to change the original object as it can cause side effects in the
+    // users code.
+    // const configWithDefaults = { ...ezChatRoomConnectionConfigDefaults, ...config }
     config = { ...ezChatRoomConnectionConfigDefaults, ...config };
 
     const context = useContext(EzChatContext);
@@ -69,6 +72,13 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
 
     const hasMoreMessages = cursor !== undefined;
 
+    // Is the idea that users would use this function in conjunction with a
+    // setInterval to fetch messages at their chosen interval?
+    // Would in the future would you add some sort of like listener for devs
+    // to use so they don't have to set the interval and instead can just pass
+    // a callback or something?
+    // Or is the idea that the dev would use "listen" (via their own useEffect)
+    // to changes in the `messages` state?
     const fetchMoreMessages = (amount: number = 25) => {
         if (!cursor) {
             setLoadMoreMessagesError(new Error("No more messages to fetch"));
@@ -83,6 +93,14 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
             .then(({ messages, nextCursor }) => {
                 setIsLoadingMoreMessages(false);
                 setMessages((prev) =>
+                    // Reversing a lot of messages could take a lot of time
+                    // could this utilize a useMemo function in case new messages
+                    // haven't been updated?
+                    // Or maybe (down the line) upstream could send a hash of
+                    // the messages as well so that you can know if no update
+                    // is required (by comparing the hash)?
+                    // could also be done by FE I guess but server side is prob
+                    // preferable.
                     config?.reverseMessages ? [...messages.reverse(), ...prev] : [...prev, ...messages]
                 );
                 setCursor(nextCursor);
@@ -121,10 +139,15 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
                         },
                         onMessage: (message) => {
                             switch (message.payloadType) {
-                                case "join" || "leave":
+                                // Is this a thing? I've never heard of || in a
+                                // case and some testing showed it didn't work.
+                                case "join":
+                                case "leave":
                                     // will be implemented later
                                     break;
                                 case "message":
+                                    // callback / listener could be implemented
+                                    // here right?
                                     if (config?.reverseMessages) {
                                         setMessages((prev) => [...prev, message.payload]);
                                     } else {
@@ -165,9 +188,8 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
 
         return () => {
             cancelConnection = true;
-            if (disconnect) {
-                disconnect();
-            }
+            // so much cooler you know it
+            disconnect?.();
         };
     }, []);
 
