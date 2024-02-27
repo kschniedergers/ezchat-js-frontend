@@ -2,6 +2,7 @@
 import { EZ_CHAT_URL } from "./consts";
 import { ChatRoomMessagePayload, ChatRoomWebsocketMessage, CursorPaginatedMessages } from "./types";
 import { z } from "zod";
+import WebSocket from "isomorphic-ws";
 
 // amount of times to retry init connection
 const RETRY_COUNT = 2;
@@ -20,7 +21,7 @@ export interface IChatRoomConnectionProps {
 
 export interface IConnectWebsocketCallbacks {
     onOpen?: () => void;
-    onError?: (err: Event) => void;
+    onError?: (err: WebSocket.ErrorEvent) => void;
     onClose?: () => void;
     onMessage?: (message: ChatRoomWebsocketMessage) => void;
 }
@@ -101,7 +102,7 @@ export class ChatRoomConnection {
 
             socket.onmessage = (event) => {
                 // TODO maybe add some validation or something
-                const message: ChatRoomMessagePayload = JSON.parse(event.data);
+                const message: ChatRoomMessagePayload = JSON.parse(event.data.toString());
                 socketCallbacks?.onMessage?.(message);
             };
 
