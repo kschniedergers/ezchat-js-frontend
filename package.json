@@ -1,6 +1,6 @@
 {
   "name": "@ezchat/ezchat-js-frontend",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": " EZChat client for JS frontends ",
   "main": "build/cjs/index.js",
   "module": "build/esm/index.js",
@@ -25,9 +25,7 @@
   "dependencies": {
     "@types/ws": "^8.5.10",
     "isomorphic-ws": "^5.0.0",
+    "ws": "^8.16.0",
     "zod": "^3.22.4"
-  },
-  "peerDependencies": {
-    "ws": "*"
   }
 }
