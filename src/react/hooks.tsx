@@ -41,7 +41,7 @@ const ezChatRoomConnectionConfigDefaults: IEzChatRoomConnectionConfig = {
 // const [messages, setMessages] = useState<MessagePayload<T>[]>([]);
 
 export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConnectionConfig) => {
-    config = { ...ezChatRoomConnectionConfigDefaults, ...config };
+    const configWithDefaults = { ...ezChatRoomConnectionConfigDefaults, ...config };
 
     const context = useContext(EzChatContext);
 
@@ -58,7 +58,7 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
         setError(new Error("sendMessage called before connecting to websocket"));
     });
 
-    const authFunctionToUse = config?.authFunction || context?.authFunction;
+    const authFunctionToUse = configWithDefaults?.authFunction || context?.authFunction;
 
     const chatRoomConnection = useMemo(
         () => new ChatRoomConnection({ roomId, authFunction: authFunctionToUse }),
@@ -80,10 +80,11 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
         setIsLoadingMoreMessages(true);
         chatRoomConnection
             .fetchMessages(cursor, amount)
+            // confusing line below!! messages is what is recieved from the fetchMessages call, and prev is the current state of messages
             .then(({ messages, nextCursor }) => {
                 setIsLoadingMoreMessages(false);
                 setMessages((prev) =>
-                    config?.reverseMessages ? [...messages.reverse(), ...prev] : [...prev, ...messages]
+                    configWithDefaults?.reverseMessages ? [...messages.reverse(), ...prev] : [...prev, ...messages]
                 );
                 setCursor(nextCursor);
             })
@@ -101,7 +102,7 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
         chatRoomConnection
             .fetchMessages()
             .then(({ messages, nextCursor }) => {
-                setMessages(config?.reverseMessages ? messages.reverse() : messages);
+                setMessages(configWithDefaults?.reverseMessages ? messages.reverse() : messages);
                 setCursor(nextCursor);
                 if (!cancelConnection) {
                     const ret = chatRoomConnection.connectWebsocket({
@@ -121,11 +122,12 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
                         },
                         onMessage: (message) => {
                             switch (message.payloadType) {
-                                case "join" || "leave":
+                                case "join":
+                                case "leave":
                                     // will be implemented later
                                     break;
                                 case "message":
-                                    if (config?.reverseMessages) {
+                                    if (configWithDefaults?.reverseMessages) {
                                         setMessages((prev) => [...prev, message.payload]);
                                     } else {
                                         setMessages((prev) => [message.payload, ...prev]);
@@ -165,9 +167,7 @@ export const useEzChatRoomConnection = (roomId: number, config?: IEzChatRoomConn
 
         return () => {
             cancelConnection = true;
-            if (disconnect) {
-                disconnect();
-            }
+            disconnect?.();
         };
     }, []);
 
