@@ -1,5 +1,7 @@
 // COPIED FROM BACKEND! CAREFUL EDITING WITHOUT CHANGING BOTH
 
+import { z } from "zod";
+
 export enum ChatterType {
     CLIENT_ADMIN = "client_admin",
     ANONYMOUS = "anonymous",
@@ -12,6 +14,23 @@ export enum MessageModerationStatus {
     REJECTED = "rejected",
     UNMODERATED = "unmoderated",
 }
+
+const toChatRoomMessageSchema = z.object({
+    payloadType: z.literal("message"),
+    payload: z.object({
+        messageText: z.string(),
+    }),
+});
+
+const toChatRoomDeleteMessageSchema = z.object({
+    payloadType: z.literal("delete_message"),
+    payload: z.object({
+        messageId: z.number(),
+    }),
+});
+
+export const toChatRoomPayloadSchema = z.union([toChatRoomMessageSchema, toChatRoomDeleteMessageSchema]);
+export type ToChatRoomPayload = z.infer<typeof toChatRoomPayloadSchema>;
 
 export interface ChatRoomMessagePayload {
     payloadType: "message";

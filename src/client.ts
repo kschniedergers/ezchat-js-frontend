@@ -1,6 +1,6 @@
 // import { createBasicHeaders } from "../../utils";
 import { EZ_CHAT_URL } from "./consts";
-import { ChatRoomMessagePayload, ChatRoomWebsocketMessage, CursorPaginatedMessages } from "./types";
+import { ChatRoomMessagePayload, ChatRoomWebsocketMessage, CursorPaginatedMessages, ToChatRoomPayload } from "./types";
 import { z } from "zod";
 import WebSocket from "isomorphic-ws";
 
@@ -123,8 +123,15 @@ export class ChatRoomConnection {
                     `You are calling sendMessage, but the websocket for room ${this.roomId} is not connected yet`
                 );
             }
+            const messagePayload: ToChatRoomPayload = {
+                payloadType: "message",
+                payload: {
+                    messageText: message,
+                },
+            };
+
             if (socket.readyState === WebSocket.OPEN) {
-                socket.send(message);
+                socket.send(JSON.stringify(messagePayload));
             } else {
                 throw new Error(
                     `You are calling sendMessage, but the websocket for room ${this.roomId} is not connected`
