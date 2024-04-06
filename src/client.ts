@@ -63,7 +63,7 @@ export class ChatRoomConnection {
                     headers["Authorization"] = "Bearer " + this.authToken;
                 }
 
-                const url = new URL("http://" + EZ_CHAT_URL + "/c/rooms/" + this.roomId + "/messages");
+                const url = new URL("https://" + EZ_CHAT_URL + "/c/rooms/" + this.roomId + "/messages");
                 if (cursor) url.searchParams.set("cursor", cursor.toString());
                 if (size) url.searchParams.set("size", size.toString());
 
