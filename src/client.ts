@@ -9,7 +9,7 @@ const RETRY_COUNT = 2;
 
 export function connectToChatRoomWebsocket(roomId: number, authToken?: string) {
     const params = authToken ? "?authToken=" + authToken : "";
-    return new WebSocket("ws://" + EZ_CHAT_URL + "/join/" + roomId + params);
+    return new WebSocket("wss://" + EZ_CHAT_URL + "/join/" + roomId + params);
 }
 
 export interface IChatRoomConnectionProps {
