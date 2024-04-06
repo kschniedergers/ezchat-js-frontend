@@ -1,2 +1,2 @@
-// const EZ_CHAT_URL = "ezchat.dev";
-export const EZ_CHAT_URL = "https://ez-chat-dev.ezchat.workers.dev";
+// Don't include https:// or ws:// vvvvvvvv
+export const EZ_CHAT_URL = "ez-chat-dev.ezchat.workers.dev";
