@@ -1,5 +1,5 @@
 // import { createBasicHeaders } from "../../utils";
-import { EZ_CHAT_URL } from "./consts";
+import { EZ_CHAT_URL, EZ_CHAT_URL_SECURE } from "./consts";
 import { ChatRoomMessagePayload, ChatRoomWebsocketMessage, CursorPaginatedMessages, ToChatRoomPayload } from "./types";
 import { z } from "zod";
 import WebSocket from "isomorphic-ws";
@@ -9,7 +9,8 @@ const RETRY_COUNT = 2;
 
 export function connectToChatRoomWebsocket(roomId: number, authToken?: string) {
     const params = authToken ? "?authToken=" + authToken : "";
-    return new WebSocket("wss://" + EZ_CHAT_URL + "/join/" + roomId + params);
+    const wsUrl = `ws${EZ_CHAT_URL_SECURE ? "s" : ""}://${EZ_CHAT_URL}/join/${roomId}${params}`;
+    return new WebSocket(wsUrl);
 }
 
 export interface IChatRoomConnectionProps {
@@ -22,7 +23,7 @@ export interface IChatRoomConnectionProps {
 export interface IConnectWebsocketCallbacks {
     onOpen?: () => void;
     onError?: (err: WebSocket.ErrorEvent) => void;
-    onClose?: () => void;
+    onClose?: (reason?: WebSocket.CloseEvent) => void;
     onMessage?: (message: ChatRoomWebsocketMessage) => void;
 }
 
@@ -63,7 +64,9 @@ export class ChatRoomConnection {
                     headers["Authorization"] = "Bearer " + this.authToken;
                 }
 
-                const url = new URL("https://" + EZ_CHAT_URL + "/c/rooms/" + this.roomId + "/messages");
+                const url = new URL(
+                    `http${EZ_CHAT_URL_SECURE ? "s" : ""}://` + EZ_CHAT_URL + "/c/rooms/" + this.roomId + "/messages"
+                );
                 if (cursor) url.searchParams.set("cursor", cursor.toString());
                 if (size) url.searchParams.set("size", size.toString());
 
@@ -106,9 +109,9 @@ export class ChatRoomConnection {
                 socketCallbacks?.onMessage?.(message);
             };
 
-            socket.onclose = () => {
-                console.log(`disconnected from room ${this.roomId}`);
-                socketCallbacks?.onClose?.();
+            socket.onclose = (e) => {
+                // console.log(`disconnected from room ${this.roomId}`);
+                socketCallbacks?.onClose?.(e);
             };
 
             socket.onerror = (error) => {

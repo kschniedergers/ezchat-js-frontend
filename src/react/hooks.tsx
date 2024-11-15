@@ -1,6 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { EzChatContext } from "./provider";
-import { EZ_CHAT_URL } from "../consts";
 import { ChatRoomConnection } from "../client";
 // import { ChatMessage } from "../../../services/UserManagementApi";
 import {

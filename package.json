@@ -11,6 +11,7 @@
   "license": "Unlicense",
   "scripts": {
     "build": "rm -rf build/ && rollup -c",
+    "dev": "rm -rf build/ && rollup -c --watch",
     "clean": "rm -rf build/ npmbuild/",
     "prepublishOnly": "pnpm clean && pnpm build",
     "postpublish": "pnpm clean",
@@ -25,9 +26,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@types/ws": "^8.5.10",
     "isomorphic-ws": "^5.0.0",
-    "ws": "^8.16.0",
     "zod": "^3.22.4"
   }
 }

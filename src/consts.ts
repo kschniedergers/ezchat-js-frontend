@@ -1,2 +1,3 @@
-// Don't include https:// or ws:// vvvvvvvv
-export const EZ_CHAT_URL = "ez-chat-dev.ezchat.workers.dev";
+// Don't include https:// or ws://
+export const EZ_CHAT_URL = "localhost:8787";
+export const EZ_CHAT_URL_SECURE = false;

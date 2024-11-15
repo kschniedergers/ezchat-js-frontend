@@ -11,7 +11,7 @@ interface EzChatProviderProps {
     children?: ReactNode;
 }
 
-export const EzChatProvider: React.FC<EzChatProviderProps> = ({ children, authFunction }) => {
+export const EzChatProvider = ({ children, authFunction }: EzChatProviderProps) => {
     const contextValue: EzChatContextProps = {
         authFunction,
     };
