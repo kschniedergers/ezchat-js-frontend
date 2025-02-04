@@ -1,14 +1,14 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { EzChatContext } from "./provider";
-import { ChatRoomConnection } from "../client";
+import { ChatRoomConnection } from "../core/client";
 // import { ChatMessage } from "../../../services/UserManagementApi";
 import {
     ChatRoomDeleteMessagePayload,
     ChatRoomJoinLeavePayload,
     ChatRoomMessagePayload,
     ChatRoomWebsocketMessage,
-} from "../types";
-import { IncludeOnly } from "../utils";
+} from "../core/types";
+import { IncludeOnly } from "../core/utils";
 import { set, z } from "zod";
 
 // type MessageTypes = IncludeOnly<ChatRoomWebsocketMessage["payloadType"], "join" | "leave" | "message">;

@@ -1,7 +1,0 @@
-{
-    "name": "@ezchat/ezchat-frontend-js/svelte",
-    "private": true,
-    "main": "../build/cjs/svelte/index.js",
-    "module": "../build/esm/svelte/index.js",
-    "types": "../build/esm/svelte/index.d.ts",
-}

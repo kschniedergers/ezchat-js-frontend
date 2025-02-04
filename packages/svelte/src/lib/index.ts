@@ -1,6 +1,7 @@
+// Reexport your entry components here
 import {} from "svelte";
-import { ChatRoomMessagePayload } from "../types";
-import { ChatRoomConnection } from "../client";
+import { ChatRoomMessagePayload } from "../core/types";
+import { ChatRoomConnection } from "../core/client";
 
 export type ConnectionStatus = "connected" | "disconnected" | "connecting";
 
